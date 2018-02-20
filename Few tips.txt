@@ -1,0 +1,85 @@
+		
+		
+Trick:
+0-----
+<base> tag on the fly.
+<script>document.write('<base href="' + document.location + '" />');</script>		
+
+
+===========================
+id: number;
+
+ngOnInit() {
+    this.sub = this.route.params.subscribe(params => {
+       this.id = +params['id']; // (+) converts string 'id' to a number
+    });
+  }
+
+===============================
+{ path: 'product-details/:id', component: ProductDetails }
+<a *ngFor="let product of products"
+  [routerLink]="['/product-details', product.id]">
+  {{ product.name }}
+</a>
+goToProductDetails(id) {
+  this.router.navigate(['/product-details', id]);
+}
+----------
+ngOnInit() {
+    this.sub = this.route.params.subscribe(params => {
+       this.id = +params['id']; // (+) converts string 'id' to a number
+
+       // In a real app: dispatch action to load the details here.
+    });
+  }
+   ngOnDestroy() {
+    this.sub.unsubscribe();
+  }
+  
+  ===============================
+  
+  export const routes: Routes = [
+  { path: '', redirectTo: 'product-list', pathMatch: 'full' },
+  { path: 'product-list', component: ProductList },
+  { path: 'product-details/:id', component: ProductDetails,
+    children: [
+      { path: '', redirectTo: 'overview', pathMatch: 'full' },
+      { path: 'overview', component: Overview },
+      { path: 'specs', component: Specs }
+    ]
+  }
+];
+----------------  Accessing a Parent's Route Parameters
+localhost:3000/product-details/3/overview
+localhost:3000/product-details/3/specs
+constructor(private router: Router,
+    private route: ActivatedRoute) {}
+
+  ngOnInit() {
+    // Get parent ActivatedRoute of this route.
+    this.sub = this.router.routerState.parent(this.route)
+      .params.subscribe(params => {
+        this.parentRouteId = +params["id"];
+      });
+  }
+=========================
+Passing Query Parameters
+---------------------
+Use the [queryParams] directive along with [routerLink] to pass query parameters. For example:
+<a [routerLink]="['product-list']" [queryParams]="{ page: 99 }">Go to Page 99</a>
+------------------------------
+Alternatively, we can navigate programmatically using the Router service:
+  goToPage(pageNum) {
+    this.router.navigate(['/product-list'], { queryParams: { page: pageNum } });
+  }
+  -----------------------
+  ngOnInit() {
+    this.sub = this.route
+      .queryParams
+      .subscribe(params => {
+        // Defaults to 0 if no query param provided.
+        this.page = +params['page'] || 0;
+      });
+  }
+  ============================
+
